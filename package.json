@@ -1,0 +1,47 @@
+{
+  "name": "gendiff-dan-hexlet",
+  "version": "1.0.1",
+  "description": "calculates differences in two jsons",
+  "files": [
+    "dist"
+  ],
+  "bin": {
+    "gendiff": "dist/bin/gendiff.js"
+  },
+  "scripts": {
+    "build": "NODE_ENV=production babel src --out-dir dist --source-maps",
+    "prepublishOnly": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "eslint": "eslint",
+    "babel-node": "babel-node",
+    "gendiff": "npm run babel-node -- src/bin/gendiff"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ydanilin/project-lvl2-s261.git"
+  },
+  "keywords": [
+    "hexlet",
+    "project",
+    "differences"
+  ],
+  "author": "Yury Danilin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ydanilin/project-lvl2-s261/issues"
+  },
+  "homepage": "https://github.com/ydanilin/project-lvl2-s261#readme",
+  "dependencies": {
+    "commander": "^2.15.1"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "babel-eslint": "^8.2.3",
+    "babel-preset-env": "^1.6.1",
+    "babel-preset-stage-0": "^6.24.1",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb": "^16.1.0",
+    "eslint-plugin-import": "^2.11.0"
+  }
+}
