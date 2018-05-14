@@ -1,7 +1,8 @@
 {
   "name": "gendiff-dan-hexlet",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "calculates differences in two jsons",
+  "main": "dist/index.js",
   "files": [
     "dist"
   ],
@@ -11,10 +12,13 @@
   "scripts": {
     "build": "NODE_ENV=production babel src --out-dir dist --source-maps",
     "prepublishOnly": "npm run build",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "eslint": "eslint",
+    "test": "jest --watch",
+    "eslint": "eslint --fix",
     "babel-node": "babel-node",
     "gendiff": "npm run babel-node -- src/bin/gendiff"
+  },
+  "jest": {
+    "testEnvironment": "node"
   },
   "repository": {
     "type": "git",
@@ -32,16 +36,23 @@
   },
   "homepage": "https://github.com/ydanilin/project-lvl2-s261#readme",
   "dependencies": {
-    "commander": "^2.15.1"
+    "commander": "^2.15.1",
+    "lodash": "^4.17.10"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.3",
     "babel-eslint": "^8.2.3",
+    "babel-jest": "^22.4.3",
     "babel-preset-env": "^1.6.1",
     "babel-preset-stage-0": "^6.24.1",
+    "babel-plugin-transform-runtime": "^6.23.0",
     "eslint": "^4.19.1",
     "eslint-config-airbnb": "^16.1.0",
-    "eslint-plugin-import": "^2.11.0"
+    "eslint-plugin-import": "^2.11.0",
+    "eslint-plugin-babel": "^5.1.0",
+    "eslint-plugin-jest": "^21.15.1",
+    "jest": "^22.4.3",
+    "jest-cli": "^22.4.3"
   }
 }
