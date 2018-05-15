@@ -1,38 +1,21 @@
 import fs from 'fs';
+import path from 'path';
+import yamlParser from 'js-yaml';
 import _ from 'lodash';
+import buildDiffString from './reporting';
 
-const prefixes = {
-  added: '+',
-  deleted: '-',
-  unchanged: ' ',
-};
-
-const toString = (key, value, prefix) =>
-  `\n  ${prefix} ${key}: ${value}`;
-
-const buildDiffString = (ast) => {
-  const iterAst = (node) => {
-    const {
-      key, status, value, prevValue,
-    } = node;
-    if (status === 'modified') {
-      return [
-        toString(key, value, prefixes.added),
-        toString(key, prevValue, prefixes.deleted),
-      ];
-    }
-    return toString(key, value, prefixes[status]);
-  };
-
-  const output = ast.map(iterAst);
-  return `{${_.flatten(output).join('')}\n}`;
+const parsers = {
+  json: JSON.parse,
+  yaml: yamlParser.safeLoad,
 };
 
 export default (beforePath, afterPath) => {
+  const fileType = path.extname(afterPath).split('.').join('');
   const beforeFile = fs.readFileSync(beforePath, 'utf-8');
   const afterFile = fs.readFileSync(afterPath, 'utf-8');
-  const beforeObject = JSON.parse(beforeFile);
-  const afterObject = JSON.parse(afterFile);
+  const doParsing = parsers[fileType];
+  const beforeObject = doParsing(beforeFile);
+  const afterObject = doParsing(afterFile);
 
   const compareObjects = (key) => {
     if (!_.has(beforeObject, key) && _.has(afterObject, key)) {
