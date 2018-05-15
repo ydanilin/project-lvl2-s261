@@ -1,12 +1,14 @@
 import fs from 'fs';
 import path from 'path';
 import yamlParser from 'js-yaml';
+import iniParser from 'ini';
 import _ from 'lodash';
 import buildDiffString from './reporting';
 
 const parsers = {
   json: JSON.parse,
   yaml: yamlParser.safeLoad,
+  ini: iniParser.parse,
 };
 
 export default (beforePath, afterPath) => {
