@@ -1,22 +1,22 @@
 import fs from 'fs';
 import _ from 'lodash';
 
-const buildDiffString = (diffObj) => {
-  const iterDiffObj = (acc, key) => {
-    const diffEntry = diffObj[key];
-    if (diffEntry.status === 'added') {
-      return `${acc}\n  + ${key}: ${diffEntry.newValue}`;
+const buildDiffString = (ast) => {
+  const iterAst = (acc, node) => {
+    const { key } = node;
+    if (node.status === 'added') {
+      return `${acc}\n  + ${key}: ${node.newValue}`;
     }
-    if (diffEntry.status === 'deleted') {
-      return `${acc}\n  - ${key}: ${diffEntry.oldValue}`;
+    if (node.status === 'deleted') {
+      return `${acc}\n  - ${key}: ${node.oldValue}`;
     }
-    if (diffEntry.status === 'unchanged') {
-      return `${acc}\n    ${key}: ${diffEntry.oldValue}`;
+    if (node.status === 'unchanged') {
+      return `${acc}\n    ${key}: ${node.oldValue}`;
     }
-    return `${acc}\n  + ${key}: ${diffEntry.newValue}\n  - ${key}: ${diffEntry.oldValue}`;
+    return `${acc}\n  + ${key}: ${node.newValue}\n  - ${key}: ${node.oldValue}`;
   };
 
-  const output = Object.keys(diffObj).reduce(iterDiffObj, '');
+  const output = ast.reduce(iterAst, '');
   return `{${output}\n}`;
 };
 
@@ -26,20 +26,22 @@ export default (beforePath, afterPath) => {
   const beforeObject = JSON.parse(beforeFile);
   const afterObject = JSON.parse(afterFile);
 
-  const compareObjects = (acc, key) => {
+  const compareObjects = (key) => {
     if (!_.has(beforeObject, key) && _.has(afterObject, key)) {
-      return { ...acc, [key]: { status: 'added', newValue: afterObject[key] } };
+      return { key, status: 'added', newValue: afterObject[key] };
     }
     if (_.has(beforeObject, key) && !_.has(afterObject, key)) {
-      return { ...acc, [key]: { status: 'deleted', oldValue: beforeObject[key] } };
+      return { key, status: 'deleted', oldValue: beforeObject[key] };
     }
     if (beforeObject[key] === afterObject[key]) {
-      return { ...acc, [key]: { status: 'unchanged', oldValue: beforeObject[key] } };
+      return { key, status: 'unchanged', oldValue: beforeObject[key] };
     }
-    return { ...acc, [key]: { status: 'modified', oldValue: beforeObject[key], newValue: afterObject[key] } };
+    return {
+      key, status: 'modified', oldValue: beforeObject[key], newValue: afterObject[key],
+    };
   };
 
-  const combinedKeys = [...new Set([...Object.keys(beforeObject), ...Object.keys(afterObject)])];
-  const diffObj = combinedKeys.reduce(compareObjects, {});
-  return buildDiffString(diffObj);
+  const combinedKeys = _.union(_.keys(beforeObject), _.keys(afterObject));
+  const ast = combinedKeys.map(compareObjects);
+  return buildDiffString(ast);
 };
