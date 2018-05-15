@@ -1,23 +1,31 @@
 import fs from 'fs';
 import _ from 'lodash';
 
+const prefixes = {
+  added: '+',
+  deleted: '-',
+  unchanged: ' ',
+};
+
+const toString = (key, value, prefix) =>
+  `\n  ${prefix} ${key}: ${value}`;
+
 const buildDiffString = (ast) => {
-  const iterAst = (acc, node) => {
-    const { key } = node;
-    if (node.status === 'added') {
-      return `${acc}\n  + ${key}: ${node.newValue}`;
+  const iterAst = (node) => {
+    const {
+      key, status, value, prevValue,
+    } = node;
+    if (status === 'modified') {
+      return [
+        toString(key, value, prefixes.added),
+        toString(key, prevValue, prefixes.deleted),
+      ];
     }
-    if (node.status === 'deleted') {
-      return `${acc}\n  - ${key}: ${node.oldValue}`;
-    }
-    if (node.status === 'unchanged') {
-      return `${acc}\n    ${key}: ${node.oldValue}`;
-    }
-    return `${acc}\n  + ${key}: ${node.newValue}\n  - ${key}: ${node.oldValue}`;
+    return toString(key, value, prefixes[status]);
   };
 
-  const output = ast.reduce(iterAst, '');
-  return `{${output}\n}`;
+  const output = ast.map(iterAst);
+  return `{${_.flatten(output).join('')}\n}`;
 };
 
 export default (beforePath, afterPath) => {
@@ -28,16 +36,16 @@ export default (beforePath, afterPath) => {
 
   const compareObjects = (key) => {
     if (!_.has(beforeObject, key) && _.has(afterObject, key)) {
-      return { key, status: 'added', newValue: afterObject[key] };
+      return { key, status: 'added', value: afterObject[key] };
     }
     if (_.has(beforeObject, key) && !_.has(afterObject, key)) {
-      return { key, status: 'deleted', oldValue: beforeObject[key] };
+      return { key, status: 'deleted', value: beforeObject[key] };
     }
     if (beforeObject[key] === afterObject[key]) {
-      return { key, status: 'unchanged', oldValue: beforeObject[key] };
+      return { key, status: 'unchanged', value: beforeObject[key] };
     }
     return {
-      key, status: 'modified', oldValue: beforeObject[key], newValue: afterObject[key],
+      key, status: 'modified', prevValue: beforeObject[key], value: afterObject[key],
     };
   };
 
