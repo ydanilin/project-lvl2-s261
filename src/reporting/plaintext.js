@@ -12,15 +12,15 @@ const toString = (key, value, prefix) =>
 export default (ast) => {
   const iterAst = (node) => {
     const {
-      key, status, value, prevValue,
+      key, type, newValue, oldValue,
     } = node;
-    if (status === 'modified') {
+    if (type === 'modified') {
       return [
-        toString(key, value, prefixes.added),
-        toString(key, prevValue, prefixes.deleted),
+        toString(key, newValue.value, prefixes.added),
+        toString(key, oldValue.value, prefixes.deleted),
       ];
     }
-    return toString(key, value, prefixes[status]);
+    return toString(key, newValue.type === 'simple' ? newValue.value : iterAst(newValue.value), prefixes[type]);
   };
 
   const output = ast.map(iterAst);

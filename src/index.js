@@ -11,30 +11,48 @@ const parsers = {
   ini: iniParser.parse,
 };
 
-export default (beforePath, afterPath) => {
-  const fileType = path.extname(afterPath).split('.').join('');
-  const beforeFile = fs.readFileSync(beforePath, 'utf-8');
-  const afterFile = fs.readFileSync(afterPath, 'utf-8');
-  const doParsing = parsers[fileType];
-  const beforeObject = doParsing(beforeFile);
-  const afterObject = doParsing(afterFile);
-
+const buildAst = (beforeObject, afterObject) => {
   const compareObjects = (key) => {
-    if (!_.has(beforeObject, key) && _.has(afterObject, key)) {
-      return { key, status: 'added', value: afterObject[key] };
+    const hasKeyBefore = _.has(beforeObject, key);
+    const hasKeyAfter = _.has(afterObject, key);
+    const beforeVal = beforeObject[key];
+    const beforeType = _.isObject(beforeVal) ? 'compound' : 'simple';
+    const afterVal = afterObject[key];
+    const afterType = _.isObject(afterVal) ? 'compound' : 'simple';
+
+    if (!hasKeyBefore && hasKeyAfter) {
+      return { key, type: 'added', newValue: { type: afterType, value: afterVal } };
     }
-    if (_.has(beforeObject, key) && !_.has(afterObject, key)) {
-      return { key, status: 'deleted', value: beforeObject[key] };
+    if (hasKeyBefore && !hasKeyAfter) {
+      return { key, type: 'deleted', newValue: { type: beforeType, value: beforeVal } };
     }
-    if (beforeObject[key] === afterObject[key]) {
-      return { key, status: 'unchanged', value: beforeObject[key] };
+    if (_.isEqual([beforeType, afterType], ['compound', 'compound'])) {  // here we go for children for sure
+      return { key, type: 'unchanged', newValue: { type: beforeType, value: buildAst(beforeVal, afterVal) } };
     }
-    return {
-      key, status: 'modified', prevValue: beforeObject[key], value: afterObject[key],
+    if (_.isEqual([beforeType, afterType], ['simple', 'simple']) && beforeVal === afterVal) {
+      return { key, type: 'unchanged', newValue: { type: beforeType, value: beforeVal } };
+    }
+    return {  // here we go for children conditionally
+      key,
+      type: 'modified',
+      oldValue: { type: beforeType, value: beforeType === 'simple' ? beforeVal : buildAst(beforeVal, afterVal) },
+      newValue: { type: afterType, value: afterType === 'simple' ? afterVal : buildAst(beforeVal, afterVal) },
     };
   };
 
   const combinedKeys = _.union(_.keys(beforeObject), _.keys(afterObject));
-  const ast = combinedKeys.map(compareObjects);
+  return combinedKeys.map(compareObjects);
+};
+
+export default (beforePath, afterPath) => {
+  const fileType = path.extname(afterPath).split('.').join('');
+  const beforeFile = fs.readFileSync(beforePath, 'utf-8');
+  const afterFile = fs.readFileSync(afterPath, 'utf-8');
+  const parse = parsers[fileType];
+  const beforeObject = parse(beforeFile);
+  const afterObject = parse(afterFile);
+
+  const ast = buildAst(beforeObject, afterObject);
+  console.log(ast);
   return buildDiffString(ast);
 };
