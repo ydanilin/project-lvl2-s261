@@ -29,3 +29,15 @@ test('difference of two nested JSON files', () => {
   const afterJsonPath = '__tests__/__fixtures__/after_nested.json';
   expect(genDiff(beforeJsonPath, afterJsonPath)).toBe(nestedTextOutput);
 });
+
+test('difference of two nested YAML files', () => {
+  const beforeYamlPath = '__tests__/__fixtures__/before_nested.yaml';
+  const afterYamlPath = '__tests__/__fixtures__/after_nested.yaml';
+  expect(genDiff(beforeYamlPath, afterYamlPath)).toBe(nestedTextOutput);
+});
+
+test('difference of two nested INI files', () => {
+  const beforeIniPath = '__tests__/__fixtures__/before_nested.ini';
+  const afterIniPath = '__tests__/__fixtures__/after_nested.ini';
+  expect(genDiff(beforeIniPath, afterIniPath)).toBe(nestedTextOutput);
+});
