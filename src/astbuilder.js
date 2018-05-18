@@ -23,22 +23,20 @@ simple !==  simple           modified
     const afterType = _.isObject(afterVal) ? 'compound' : 'simple';
 
     if (!hasKeyBefore && hasKeyAfter) {
-      return { key, type: 'added', newValue: { type: afterType, value: afterVal } };
+      return { key, type: 'added', newValue: afterVal };
     }
     if (hasKeyBefore && !hasKeyAfter) {
-      return { key, type: 'deleted', newValue: { type: beforeType, value: beforeVal } };
+      return { key, type: 'removed', newValue: beforeVal };
     }
     if (_.isEqual([beforeType, afterType], ['compound', 'compound'])) { // here we go for children without condition
-      return { key, type: 'unchanged', newValue: { type: beforeType, value: buildAst(beforeVal, afterVal) } };
+      return { key, type: 'unchanged', newValue: buildAst(beforeVal, afterVal) };
     }
     if (_.isEqual([beforeType, afterType], ['simple', 'simple']) && beforeVal === afterVal) {
-      return { key, type: 'unchanged', newValue: { type: beforeType, value: beforeVal } };
+      return { key, type: 'unchanged', newValue: beforeVal };
     }
-    return { // here no children
-      key,
-      type: 'modified',
-      oldValue: { type: beforeType, value: beforeVal },
-      newValue: { type: afterType, value: afterVal },
+    // here no children
+    return {
+      key, type: 'updated', oldValue: beforeVal, newValue: afterVal,
     };
   };
 

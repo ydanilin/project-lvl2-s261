@@ -1,3 +1,7 @@
-import buildDiffString from './plaintext';
+import buildGitStyleDiffString from './gitstyle';
+import buildLogStyleDiffString from './logstyle';
 
-export default buildDiffString;
+export default {
+  gitstyle: buildGitStyleDiffString,
+  logstyle: buildLogStyleDiffString,
+};

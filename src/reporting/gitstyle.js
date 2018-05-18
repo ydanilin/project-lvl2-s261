@@ -2,7 +2,7 @@ import _ from 'lodash';
 
 const prefixes = {
   added: '+',
-  deleted: '-',
+  removed: '-',
   unchanged: ' ',
 };
 
@@ -28,13 +28,13 @@ const renderAst = (ast, level = 0) => {
     const {
       key, type, newValue, oldValue,
     } = node;
-    if (type === 'modified') {
+    if (type === 'updated') {
       return [
-        toString(key, newValue.value, prefixes.added),
-        toString(key, oldValue.value, prefixes.deleted),
+        toString(key, newValue, prefixes.added),
+        toString(key, oldValue, prefixes.removed),
       ];
     }
-    return toString(key, newValue.value, prefixes[type]);
+    return toString(key, newValue, prefixes[type]);
   };
 
   const output = ast.map(iterAst);

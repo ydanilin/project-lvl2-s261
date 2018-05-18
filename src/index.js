@@ -3,7 +3,7 @@ import path from 'path';
 import yamlParser from 'js-yaml';
 import iniParser from 'ini';
 import buildAst from './astbuilder';
-import buildDiffString from './reporting';
+import reportFormats from './reporting';
 
 const parsers = {
   json: JSON.parse,
@@ -11,7 +11,7 @@ const parsers = {
   ini: iniParser.parse,
 };
 
-export default (beforePath, afterPath) => {
+export default (beforePath, afterPath, format = 'gitstyle') => {
   const fileType = path.extname(afterPath).split('.').join('');
   const beforeFile = fs.readFileSync(beforePath, 'utf-8');
   const afterFile = fs.readFileSync(afterPath, 'utf-8');
@@ -19,6 +19,6 @@ export default (beforePath, afterPath) => {
   const beforeObject = parse(beforeFile);
   const afterObject = parse(afterFile);
 
-  const ast = buildAst(beforeObject, afterObject);
-  return buildDiffString(ast);
+  const ast = buildAst(beforeObject, afterObject, format);
+  return reportFormats[format](ast);
 };
