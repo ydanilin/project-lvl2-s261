@@ -8,17 +8,19 @@ const prefixes = {
 
 const stringifyObj = (obj, indent = '') => {
   const arrFromJson = JSON.stringify(obj, null, 4).replace(/"([^(")"]+)"/g, '$1').split('\n');
-  const indentedArr = arrFromJson.map(x => (x === '{' ? x : `${indent}  ${x}`));
+  const indentedArr = arrFromJson.map(text => (text === '{' ? text : `${indent}  ${text}`));
   return indentedArr.join('\n');
 };
 
 const renderAst = (ast, level = 0) => {
   const toString = (key, value, prefix) => {
     const indent = `${' '.repeat((level + 1) * 2)}`;
-    if (_.isArray(value)) {
+    const hasChildren = _.isArray(value);
+    const isComplexValue = _.isObject(value);
+    if (hasChildren) {
       return `\n${indent}${prefix} ${key}: {${renderAst(value, level + 2)}\n${indent}  }`;
     }
-    if (_.isObject(value)) {
+    if (isComplexValue) {
       return `\n${indent}${prefix} ${key}: ${stringifyObj(value, indent)}`;
     }
     return `\n${indent}${prefix} ${key}: ${value}`;

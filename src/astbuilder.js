@@ -18,9 +18,9 @@ simple !==  simple           modified
     const hasKeyBefore = _.has(beforeObject, key);
     const hasKeyAfter = _.has(afterObject, key);
     const beforeVal = beforeObject[key];
-    const beforeType = _.isObject(beforeVal) ? 'compound' : 'simple';
     const afterVal = afterObject[key];
-    const afterType = _.isObject(afterVal) ? 'compound' : 'simple';
+    const bothAreObjects = _.isObject(beforeVal) && _.isObject(afterVal);
+    const bothAreSimple = !_.isObject(beforeVal) && !_.isObject(afterVal);
 
     if (!hasKeyBefore && hasKeyAfter) {
       return { key, type: 'added', newValue: afterVal };
@@ -28,10 +28,10 @@ simple !==  simple           modified
     if (hasKeyBefore && !hasKeyAfter) {
       return { key, type: 'removed', newValue: beforeVal };
     }
-    if (_.isEqual([beforeType, afterType], ['compound', 'compound'])) { // here we go for children without condition
+    if (bothAreObjects) { // here we go for children without condition
       return { key, type: 'unchanged', newValue: buildAst(beforeVal, afterVal) };
     }
-    if (_.isEqual([beforeType, afterType], ['simple', 'simple']) && beforeVal === afterVal) {
+    if (bothAreSimple && beforeVal === afterVal) {
       return { key, type: 'unchanged', newValue: beforeVal };
     }
     // here no children
