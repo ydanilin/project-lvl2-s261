@@ -8,32 +8,30 @@ const display = value =>
     object: '<complex value>',
   }[typeof value]);
 
-const toString = (node, path) => {
-  const {
-    key, type, newValue, oldValue,
-  } = node;
-  const message = {
+const formPathSelector = (path, key) => (path ? `${path}.${key}` : key);
+
+const toString = (key, type, newValue, oldValue, path) => {
+  const optionalMessage = {
     updated: `. From ${display(oldValue)} to ${display(newValue)}`,
     added: ` with value: ${display(newValue)}`,
   }[type];
-  const selector = path ? `${path}.${key}` : key;
 
-  return `Property '${selector}' was ${type}${message || ''}`;
+  return `Property '${formPathSelector(path, key)}' was ${type}${optionalMessage || ''}`;
 };
 
 const renderAst = (ast) => {
   const iterAst = path => (node) => {
     const {
-      key, type, newValue,
+      key, type, newValue, oldValue,
     } = node;
     const hasChildren = _.isArray(newValue);
     if (!hasChildren && type === 'unchanged') {
       return undefined;
     }
     if (hasChildren && type === 'unchanged') {
-      return _.flatten(newValue.map(iterAst(path ? `${path}.${key}` : key)));
+      return _.flatten(newValue.map(iterAst(formPathSelector(path, key))));
     }
-    return toString(node, path);
+    return toString(key, type, newValue, oldValue, path);
   };
 
   const output = ast.map(iterAst(''));
