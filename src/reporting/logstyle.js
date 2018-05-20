@@ -1,4 +1,3 @@
-import _ from 'lodash';
 
 const display = value =>
   ({
@@ -13,10 +12,8 @@ const formPathSelector = (path, key) => (path ? `${path}.${key}` : key);
 const typeHandlers = {
   merged: ({ name, children }, path, renderFunc) =>
     renderFunc(children, formPathSelector(path, name)),
-  unchanged: () => undefined,
   updated: ({ name, newValue, oldValue }, path) =>
-    `Property '${formPathSelector(path, name)}' was updated. ` +
-    `From ${display(oldValue)} to ${display(newValue)}`,
+    `Property '${formPathSelector(path, name)}' was updated. From ${display(oldValue)} to ${display(newValue)}`,
   added: ({ name, newValue }, path) =>
     `Property '${formPathSelector(path, name)}' was added with value: ${display(newValue)}`,
   removed: ({ name }, path) =>
@@ -24,6 +21,7 @@ const typeHandlers = {
 };
 
 const renderAst = (ast, path = '') =>
-  _.compact(ast.map(node => typeHandlers[node.type](node, path, renderAst))).join('\n');
+  ast.filter(obj => obj.type !== 'unchanged')
+    .map(node => typeHandlers[node.type](node, path, renderAst)).join('\n');
 
 export default renderAst;
