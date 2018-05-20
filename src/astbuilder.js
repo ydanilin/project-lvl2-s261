@@ -1,47 +1,62 @@
 import _ from 'lodash';
 
+const diffCases = [
+  {
+    type: 'merged',
+    check: (first, second, key) => (first[key] instanceof Object && second[key] instanceof Object),
+    buildNode: (first, second, key, goDeepFunc) => ({
+      name: key,
+      type: 'merged',
+      children: goDeepFunc(first[key], second[key]),
+    }),
+  },
+  {
+    type: 'unchanged',
+    check: (first, second, key) => (_.has(first, key) && _.has(second, key)
+      && (first[key] === second[key])),
+    buildNode: (first, second, key) => ({
+      name: key,
+      type: 'unchanged',
+      newValue: second[key],
+    }),
+  },
+  {
+    type: 'updated',
+    check: (first, second, key) => (_.has(first, key) && _.has(second, key)
+    && (first[key] !== second[key])),
+    buildNode: (first, second, key) => ({
+      name: key,
+      type: 'updated',
+      oldValue: first[key],
+      newValue: second[key],
+    }),
+  },
+  {
+    type: 'added',
+    check: (first, second, key) => !_.has(first, key),
+    buildNode: (first, second, key) => ({
+      name: key,
+      type: 'added',
+      newValue: second[key],
+    }),
+  },
+  {
+    type: 'removed',
+    check: (first, second, key) => !_.has(second, key),
+    buildNode: (first, second, key) => ({
+      name: key,
+      type: 'removed',
+      newValue: first[key],
+    }),
+  },
+];
+
 const buildAst = (beforeObject, afterObject) => {
-/*
-the following cases are possible:
-old           new            type
------------------------------------
-<no>        any type         added
-any type    <no>             deleted
-object      object           unchanged
-simple ===  simple           unchanged
------ all the rest of the cases are "modified" and placed below quard expressions:
-simple      object           modified
-object      simple           modified
-simple !==  simple           modified
-*/
-  const compareObjects = (key) => {
-    const hasKeyBefore = _.has(beforeObject, key);
-    const hasKeyAfter = _.has(afterObject, key);
-    const beforeVal = beforeObject[key];
-    const afterVal = afterObject[key];
-    const bothAreObjects = _.isObject(beforeVal) && _.isObject(afterVal);
-    const bothAreSimple = !_.isObject(beforeVal) && !_.isObject(afterVal);
-
-    if (!hasKeyBefore && hasKeyAfter) {
-      return { key, type: 'added', newValue: afterVal };
-    }
-    if (hasKeyBefore && !hasKeyAfter) {
-      return { key, type: 'removed', newValue: beforeVal };
-    }
-    if (bothAreObjects) { // here we go for children without condition
-      return { key, type: 'unchanged', newValue: buildAst(beforeVal, afterVal) };
-    }
-    if (bothAreSimple && beforeVal === afterVal) {
-      return { key, type: 'unchanged', newValue: beforeVal };
-    }
-    // here no children
-    return {
-      key, type: 'updated', oldValue: beforeVal, newValue: afterVal,
-    };
-  };
-
   const combinedKeys = _.union(_.keys(beforeObject), _.keys(afterObject));
-  return combinedKeys.map(compareObjects);
+  return combinedKeys.map((key) => {
+    const { buildNode } = _.find(diffCases, ({ check }) => check(beforeObject, afterObject, key));
+    return buildNode(beforeObject, afterObject, key, buildAst);
+  });
 };
 
 export default buildAst;

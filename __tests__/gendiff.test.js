@@ -1,100 +1,89 @@
 import fs from 'fs';
 import genDiff from '../src';
 
-describe('difference of files without nesting', () => {
-  const plainTextPath = '__tests__/__fixtures__/plain_gitstyle_output.txt';
-  let plainTextOutput;
+const getBeforePath = (format, nested) =>
+  `__tests__/__fixtures__/before${nested ? '_nested' : ''}.${format}`;
+
+const getAfterPath = (format, nested) =>
+  `__tests__/__fixtures__/after${nested ? '_nested' : ''}.${format}`;
+
+describe('Git-style difference of files without nesting', () => {
+  const resultPath = '__tests__/__fixtures__/plain_gitstyle_output.txt';
+  const nested = false;
+  let result;
   beforeAll(() => {
-    plainTextOutput = fs.readFileSync(plainTextPath, 'utf-8').trim();
+    result = fs.readFileSync(resultPath, 'utf-8').trim();
   });
 
-  test('difference of two plain JSON files', () => {
-    const beforeJsonPath = '__tests__/__fixtures__/before.json';
-    const afterJsonPath = '__tests__/__fixtures__/after.json';
-    expect(genDiff(beforeJsonPath, afterJsonPath)).toBe(plainTextOutput);
-  });
-
-  test('difference of two plain YAML files', () => {
-    const beforeYamlPath = '__tests__/__fixtures__/before.yaml';
-    const afterYamlPath = '__tests__/__fixtures__/after.yaml';
-    expect(genDiff(beforeYamlPath, afterYamlPath)).toBe(plainTextOutput);
-  });
-
-  test('difference of two plain INI files', () => {
-    const beforeIniPath = '__tests__/__fixtures__/before.ini';
-    const afterIniPath = '__tests__/__fixtures__/after.ini';
-    expect(genDiff(beforeIniPath, afterIniPath)).toBe(plainTextOutput);
+  ['json', 'yaml', 'ini'].forEach((format) => {
+    test(`difference of two plain ${format.toUpperCase()} files`, () => {
+      expect(genDiff(getBeforePath(format, nested), getAfterPath(format, nested))).toBe(result);
+    });
   });
 });
 
-describe('difference of nested structure files', () => {
-  const nestedTextPath = '__tests__/__fixtures__/nested_gitstyle_output.txt';
-  let nestedTextOutput;
+describe('Git-style difference of nested structure files', () => {
+  const resultPath = '__tests__/__fixtures__/nested_gitstyle_output.txt';
+  const nested = true;
+  let result;
   beforeAll(() => {
-    nestedTextOutput = fs.readFileSync(nestedTextPath, 'utf-8').trim();
+    result = fs.readFileSync(resultPath, 'utf-8').trim();
   });
 
-  test('difference of two nested JSON files', () => {
-    const beforeJsonPath = '__tests__/__fixtures__/before_nested.json';
-    const afterJsonPath = '__tests__/__fixtures__/after_nested.json';
-    expect(genDiff(beforeJsonPath, afterJsonPath)).toBe(nestedTextOutput);
-  });
-
-  test('difference of two nested YAML files', () => {
-    const beforeYamlPath = '__tests__/__fixtures__/before_nested.yaml';
-    const afterYamlPath = '__tests__/__fixtures__/after_nested.yaml';
-    expect(genDiff(beforeYamlPath, afterYamlPath)).toBe(nestedTextOutput);
-  });
-
-  test('difference of two nested INI files', () => {
-    const beforeIniPath = '__tests__/__fixtures__/before_nested.ini';
-    const afterIniPath = '__tests__/__fixtures__/after_nested.ini';
-    expect(genDiff(beforeIniPath, afterIniPath)).toBe(nestedTextOutput);
+  ['json', 'yaml', 'ini'].forEach((format) => {
+    test(`difference of two nested ${format.toUpperCase()} files`, () => {
+      expect(genDiff(getBeforePath(format, nested), getAfterPath(format, nested))).toBe(result);
+    });
   });
 });
 
-describe('log style output difference of nested structure files', () => {
-  const nestedLogPath = '__tests__/__fixtures__/nested_logstyle_output.txt';
-  let nestedLogOutput;
+describe('Log-style difference of nested structure files', () => {
+  const resultPath = '__tests__/__fixtures__/nested_logstyle_output.txt';
+  const nested = true;
+  const style = 'log';
+  let result;
   beforeAll(() => {
-    nestedLogOutput = fs.readFileSync(nestedLogPath, 'utf-8').trim();
+    result = fs.readFileSync(resultPath, 'utf-8').trim();
   });
 
-  test('difference of two nested JSON files', () => {
-    const beforeJsonPath = '__tests__/__fixtures__/before_nested.json';
-    const afterJsonPath = '__tests__/__fixtures__/after_nested.json';
-    expect(genDiff(beforeJsonPath, afterJsonPath, 'logstyle')).toBe(nestedLogOutput);
-  });
-
-  test('difference of two nested YAML files', () => {
-    const beforeYamlPath = '__tests__/__fixtures__/before_nested.yaml';
-    const afterYamlPath = '__tests__/__fixtures__/after_nested.yaml';
-    expect(genDiff(beforeYamlPath, afterYamlPath, 'logstyle')).toBe(nestedLogOutput);
-  });
-
-  test('difference of two nested INI files', () => {
-    const beforeIniPath = '__tests__/__fixtures__/before_nested.ini';
-    const afterIniPath = '__tests__/__fixtures__/after_nested.ini';
-    expect(genDiff(beforeIniPath, afterIniPath, 'logstyle')).toBe(nestedLogOutput);
+  ['json', 'yaml', 'ini'].forEach((format) => {
+    test(`difference of two nested ${format.toUpperCase()} files`, () => {
+      // eslint-disable-next-line
+      expect(genDiff(getBeforePath(format, nested), getAfterPath(format, nested), style)).toBe(result);
+    });
   });
 });
 
-describe('log style output difference of plain structure files', () => {
-  const plainLogPath = '__tests__/__fixtures__/plain_logstyle_output.txt';
-  let plainLogOutput;
+describe('Log-style difference of plain structure files', () => {
+  const resultPath = '__tests__/__fixtures__/plain_logstyle_output.txt';
+  const nested = false;
+  const style = 'log';
+  let result;
   beforeAll(() => {
-    plainLogOutput = fs.readFileSync(plainLogPath, 'utf-8').trim();
+    result = fs.readFileSync(resultPath, 'utf-8').trim();
   });
 
-  test('difference of two plain JSON files', () => {
-    const beforeJsonPath = '__tests__/__fixtures__/before.json';
-    const afterJsonPath = '__tests__/__fixtures__/after.json';
-    expect(genDiff(beforeJsonPath, afterJsonPath, 'logstyle')).toBe(plainLogOutput);
+  ['json', 'yaml'].forEach((format) => {
+    test(`difference of two plain ${format.toUpperCase()} files`, () => {
+      // eslint-disable-next-line
+      expect(genDiff(getBeforePath(format, nested), getAfterPath(format, nested), style)).toBe(result);
+    });
+  });
+});
+
+describe('JSON-style difference of nested structure files', () => {
+  const resultPath = '__tests__/__fixtures__/nested_json_output.txt';
+  const nested = true;
+  const style = 'json';
+  let result;
+  beforeAll(() => {
+    result = fs.readFileSync(resultPath, 'utf-8').trim();
   });
 
-  test('difference of two plain YAML files', () => {
-    const beforeYamlPath = '__tests__/__fixtures__/before.yaml';
-    const afterYamlPath = '__tests__/__fixtures__/after.yaml';
-    expect(genDiff(beforeYamlPath, afterYamlPath, 'logstyle')).toBe(plainLogOutput);
+  ['json', 'yaml', 'ini'].forEach((format) => {
+    test(`difference of two nested ${format.toUpperCase()} files`, () => {
+      // eslint-disable-next-line
+      expect(genDiff(getBeforePath(format, nested), getAfterPath(format, nested), style)).toBe(result);
+    });
   });
 });

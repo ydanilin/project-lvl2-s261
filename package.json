@@ -1,6 +1,6 @@
 {
   "name": "gendiff-dan-hexlet",
-  "version": "1.5.3",
+  "version": "1.7.0",
   "description": "calculates differences in two jsons",
   "main": "dist/index.js",
   "files": [

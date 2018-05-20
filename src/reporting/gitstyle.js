@@ -1,46 +1,33 @@
 import _ from 'lodash';
 
-const prefixes = {
-  added: '+',
-  removed: '-',
-  unchanged: ' ',
-};
+const doIndent = level => `${' '.repeat((level + 1) * 2)}`;
 
-const stringifyObj = (obj, indent = '') => {
-  const arrFromJson = JSON.stringify(obj, null, 4).replace(/"([^(")"]+)"/g, '$1').split('\n');
+const toString = (value, level) => {
+  if (!_.isObject(value)) {
+    return value;
+  }
+  const indent = doIndent(level);
+  const arrFromJson = JSON.stringify(value, null, 4).replace(/"([^(")"]+)"/g, '$1').split('\n');
   const indentedArr = arrFromJson.map(text => (text === '{' ? text : `${indent}  ${text}`));
   return indentedArr.join('\n');
 };
 
-const renderAst = (ast, level = 0) => {
-  const toString = (key, value, prefix) => {
-    const indent = `${' '.repeat((level + 1) * 2)}`;
-    const hasChildren = _.isArray(value);
-    const isComplexValue = _.isObject(value);
-    if (hasChildren) {
-      return `\n${indent}${prefix} ${key}: {${renderAst(value, level + 2)}\n${indent}  }`;
-    }
-    if (isComplexValue) {
-      return `\n${indent}${prefix} ${key}: ${stringifyObj(value, indent)}`;
-    }
-    return `\n${indent}${prefix} ${key}: ${value}`;
-  };
-
-  const iterAst = (node) => {
-    const {
-      key, type, newValue, oldValue,
-    } = node;
-    if (type === 'updated') {
-      return [
-        toString(key, newValue, prefixes.added),
-        toString(key, oldValue, prefixes.removed),
-      ];
-    }
-    return toString(key, newValue, prefixes[type]);
-  };
-
-  const output = ast.map(iterAst);
-  return `${_.flatten(output).join('')}`;
+const typeHandlers = {
+  merged: ({ name, children }, level, renderFunc) =>
+    `${doIndent(level)}  ${name}: {\n${renderFunc(children, level + 2)}\n  ${doIndent(level)}}`,
+  unchanged: ({ name, newValue }, level) =>
+    `${doIndent(level)}  ${name}: ${toString(newValue, level)}`,
+  updated: ({ name, newValue, oldValue }, level) => [
+    `${doIndent(level)}+ ${name}: ${toString(newValue, level)}`,
+    `${doIndent(level)}- ${name}: ${toString(oldValue, level)}`,
+  ],
+  added: ({ name, newValue }, level) =>
+    `${doIndent(level)}+ ${name}: ${toString(newValue, level)}`,
+  removed: ({ name, newValue }, level) =>
+    `${doIndent(level)}- ${name}: ${toString(newValue, level)}`,
 };
 
-export default ast => `{${renderAst(ast)}\n}`;
+const renderAst = (ast, level = 0) =>
+  _.flatten(ast.map(node => typeHandlers[node.type](node, level, renderAst))).join('\n');
+
+export default ast => `{\n${renderAst(ast)}\n}`;
