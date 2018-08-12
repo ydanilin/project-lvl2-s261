@@ -9,7 +9,7 @@ const optIndent = 23;
 program
   .version('1.0.1')
   .arguments('<firstConfig> <secondConfig>')
-  .description('Compares two configuration files and shows a difference.')
+  .description('Compares two configuration files (json|yaml|ini) and shows a difference.')
   .option('-f, --format [type]', `Output format, type:
   ${' '.repeat(optIndent)}git (default) - gitDiff style
   ${' '.repeat(optIndent)}log - messages like in logfiles
